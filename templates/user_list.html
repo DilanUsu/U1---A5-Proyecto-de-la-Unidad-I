@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Usuarios registrados{% endblock %}
+
+{% block content %}
+<h1>Usuarios registrados</h1>
+
+<ul class="user-list">
+    {% for usuario in usuarios %}
+        <li class="card">
+            <a href="{{ url_for('users.profile', id=usuario.id) }}">{{ usuario.username|capitalize }}</a>
+        </li>
+    {% endfor %}
+</ul>
+{% endblock %}
