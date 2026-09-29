@@ -4,26 +4,11 @@
 
 {% block content %}
 <h1>Editar perfil</h1>
-
-<form method="POST" class="form card" novalidate>
+<form method="POST" novalidate>
     {{ form.hidden_tag() }}
-
-    <div class="form-group">
-        {{ form.username.label }}
-        {{ form.username() }}
-        {% for error in form.username.errors %}
-            <span class="error">{{ error }}</span>
-        {% endfor %}
-    </div>
-
-    <div class="form-group">
-        {{ form.email.label }}
-        {{ form.email() }}
-        {% for error in form.email.errors %}
-            <span class="error">{{ error }}</span>
-        {% endfor %}
-    </div>
-
-    {{ form.submit(class="btn") }}
+    {% for campo in [form.username, form.email] %}
+        {% include "partials/_campo.html" %}
+    {% endfor %}
+    {{ form.submit() }}
 </form>
 {% endblock %}

@@ -1,6 +1,6 @@
-Flask
-Flask-SQLAlchemy
-Flask-WTF
-PyMySQL
-cryptography
+flask
+flask-sqlalchemy
+flask-wtf
+pymysql
 email-validator
+cryptography

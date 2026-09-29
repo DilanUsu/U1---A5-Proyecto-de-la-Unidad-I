@@ -2,7 +2,7 @@ from functools import wraps
 
 from flask import Blueprint, render_template, redirect, url_for, flash, session
 
-from extensions import db
+from models import db
 from models.user import User
 from forms.user_forms import RegisterForm, LoginForm, EditProfileForm
 
@@ -10,18 +10,22 @@ users_bp = Blueprint("users", __name__)
 
 
 def login_required(f):
+    """Exige sesión iniciada y que el usuario sea el dueño del perfil."""
     @wraps(f)
-    def decorated(*args, **kwargs):
+    def wrapper(id):
         if "user_id" not in session:
+            flash("Debes iniciar sesión.", "error")
             return redirect(url_for("users.login"))
-        return f(*args, **kwargs)
-    return decorated
+        if session["user_id"] != id:
+            flash("No tienes permiso para modificar este perfil.", "error")
+            return redirect(url_for("users.profile", id=id))
+        return f(id)
+    return wrapper
 
 
 @users_bp.route("/")
 def index():
-    usuarios = User.query.order_by(User.created_at.desc()).all()
-    return render_template("user_list.html", usuarios=usuarios)
+    return render_template("user_list.html", usuarios=User.query.all())
 
 
 @users_bp.route("/register", methods=["GET", "POST"])
@@ -32,8 +36,10 @@ def register():
         usuario.set_password(form.password.data)
         db.session.add(usuario)
         db.session.commit()
-        flash("Registro exitoso. Ahora puedes iniciar sesión.", "success")
+        flash("Registro exitoso. Inicia sesión.", "success")
         return redirect(url_for("users.login"))
+    if form.is_submitted():
+        flash("Revisa los datos del registro.", "error")
     return render_template("register.html", form=form)
 
 
@@ -46,6 +52,7 @@ def login():
             session["user_id"] = usuario.id
             flash(f"Bienvenido, {usuario.username}.", "success")
             return redirect(url_for("users.profile", id=usuario.id))
+    if form.is_submitted():
         flash("Correo o contraseña incorrectos.", "error")
     return render_template("login.html", form=form)
 
@@ -53,52 +60,39 @@ def login():
 @users_bp.route("/logout")
 def logout():
     session.clear()
-    flash("Has cerrado sesión.", "success")
+    flash("Sesión cerrada.", "success")
     return redirect(url_for("users.index"))
 
 
 @users_bp.route("/profile/<int:id>")
 def profile(id):
-    usuario = User.query.get_or_404(id)
-    return render_template("profile.html", usuario=usuario)
+    return render_template("profile.html", usuario=User.query.get_or_404(id))
 
 
 @users_bp.route("/profile/<int:id>/edit", methods=["GET", "POST"])
 @login_required
 def edit_profile(id):
-    if session["user_id"] != id:
-        flash("No tienes permiso para editar este perfil.", "error")
-        return redirect(url_for("users.profile", id=id))
-
     usuario = User.query.get_or_404(id)
     form = EditProfileForm(obj=usuario)
-
     if form.validate_on_submit():
-        # Evita duplicados con otros usuarios (excluyendo al propio)
-        if User.query.filter(User.username == form.username.data, User.id != id).first():
-            form.username.errors.append("Ese nombre de usuario ya está en uso.")
-        elif User.query.filter(User.email == form.email.data, User.id != id).first():
-            form.email.errors.append("Ese correo ya está en uso.")
-        else:
+        duplicado = User.query.filter(User.id != id, (User.username == form.username.data)
+                                      | (User.email == form.email.data)).first()
+        if not duplicado:
             usuario.username = form.username.data
             usuario.email = form.email.data
             db.session.commit()
-            flash("Perfil actualizado correctamente.", "success")
+            flash("Perfil actualizado.", "success")
             return redirect(url_for("users.profile", id=id))
-
-    return render_template("edit_profile.html", form=form, usuario=usuario)
+    if form.is_submitted():
+        flash("No se pudo actualizar: datos inválidos o ya en uso.", "error")
+    return render_template("edit_profile.html", form=form)
 
 
 @users_bp.route("/profile/<int:id>/delete", methods=["POST"])
 @login_required
 def delete_profile(id):
-    if session["user_id"] != id:
-        flash("No tienes permiso para eliminar este perfil.", "error")
-        return redirect(url_for("users.profile", id=id))
-
-    usuario = User.query.get_or_404(id)
-    db.session.delete(usuario)
+    db.session.delete(User.query.get_or_404(id))
     db.session.commit()
     session.clear()
-    flash("Tu cuenta ha sido eliminada.", "success")
+    flash("Cuenta eliminada.", "success")
     return redirect(url_for("users.index"))

@@ -1,0 +1,5 @@
+<p>
+    {{ campo.label }}<br>
+    {{ campo() }}
+    {% for error in campo.errors %}<br><span class="error">{{ error }}</span>{% endfor %}
+</p>

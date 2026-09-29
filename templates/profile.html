@@ -1,26 +1,16 @@
 {% extends "base.html" %}
 
-{% block title %}Perfil de {{ usuario.username|capitalize }}{% endblock %}
+{% block title %}{{ usuario.username|capitalize }}{% endblock %}
 
 {% block content %}
-<div class="card profile">
-    <h1>{{ usuario.username|capitalize }}</h1>
-    <p><strong>Correo:</strong> {{ usuario.email }}</p>
-    <p><strong>Miembro desde:</strong> {{ usuario.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+<h1>{{ usuario.username|capitalize }}</h1>
+<p>Correo: {{ usuario.email|default("Sin correo") }}</p>
 
-    {% if session.user_id == usuario.id %}
-        <div class="actions">
-            <a class="btn" href="{{ url_for('users.edit_profile', id=usuario.id) }}">Editar perfil</a>
-
-            <!-- Este formulario no usa FlaskForm, así que el token CSRF se agrega manualmente -->
-            <form method="POST" action="{{ url_for('users.delete_profile', id=usuario.id) }}" class="inline-form">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="btn btn-danger"
-                        onclick="return confirm('¿Seguro que deseas eliminar tu cuenta? Esta acción no se puede deshacer.');">
-                    Eliminar cuenta
-                </button>
-            </form>
-        </div>
-    {% endif %}
-</div>
+{% if session.user_id == usuario.id %}
+    <a href="{{ url_for('users.edit_profile', id=usuario.id) }}">Editar perfil</a>
+    <form method="POST" action="{{ url_for('users.delete_profile', id=usuario.id) }}" data-confirm="¿Eliminar tu cuenta?">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit">Eliminar cuenta</button>
+    </form>
+{% endif %}
 {% endblock %}

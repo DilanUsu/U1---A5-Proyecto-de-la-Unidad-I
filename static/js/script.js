@@ -1,12 +1,6 @@
-// Oculta automáticamente los mensajes flash después de unos segundos
-document.addEventListener("DOMContentLoaded", function () {
-    const flashes = document.querySelectorAll(".flash");
-    flashes.forEach(function (flash) {
-        setTimeout(function () {
-            flash.style.opacity = "0";
-            setTimeout(function () {
-                flash.remove();
-            }, 500);
-        }, 4000);
+// Pide confirmación antes de enviar formularios con data-confirm (eliminar cuenta)
+document.querySelectorAll("form[data-confirm]").forEach(function (form) {
+    form.addEventListener("submit", function (e) {
+        if (!confirm(form.dataset.confirm)) e.preventDefault();
     });
 });

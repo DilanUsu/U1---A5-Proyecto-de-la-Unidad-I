@@ -3,43 +3,12 @@
 {% block title %}Registro{% endblock %}
 
 {% block content %}
-<h1>Crear cuenta</h1>
-
-<form method="POST" class="form card" novalidate>
+<h1>Registro</h1>
+<form method="POST" novalidate>
     {{ form.hidden_tag() }}
-
-    <div class="form-group">
-        {{ form.username.label }}
-        {{ form.username() }}
-        {% for error in form.username.errors %}
-            <span class="error">{{ error }}</span>
-        {% endfor %}
-    </div>
-
-    <div class="form-group">
-        {{ form.email.label }}
-        {{ form.email() }}
-        {% for error in form.email.errors %}
-            <span class="error">{{ error }}</span>
-        {% endfor %}
-    </div>
-
-    <div class="form-group">
-        {{ form.password.label }}
-        {{ form.password() }}
-        {% for error in form.password.errors %}
-            <span class="error">{{ error }}</span>
-        {% endfor %}
-    </div>
-
-    <div class="form-group">
-        {{ form.confirm_password.label }}
-        {{ form.confirm_password() }}
-        {% for error in form.confirm_password.errors %}
-            <span class="error">{{ error }}</span>
-        {% endfor %}
-    </div>
-
-    {{ form.submit(class="btn") }}
+    {% for campo in [form.username, form.email, form.password, form.confirm_password] %}
+        {% include "partials/_campo.html" %}
+    {% endfor %}
+    {{ form.submit() }}
 </form>
 {% endblock %}
