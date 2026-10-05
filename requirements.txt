@@ -4,3 +4,4 @@ flask-wtf
 pymysql
 email-validator
 cryptography
+python-dotenv
